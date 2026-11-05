@@ -214,11 +214,19 @@ async fn check_size(
             &init,
         )?;
 
-    let response =
-        Fetch::Request(request)
+    let mut response =
+        match Fetch::Request(upstream)
             .send()
-            .await?;
-
+            .await
+        {
+            Ok(response) => response,
+            Err(err) => {
+                return Response::error(
+                    format!("upstream fetch error: {}", err),
+                    500,
+                );
+            }
+        };
     if let Some(length) =
         response
             .headers()
