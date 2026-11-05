@@ -397,10 +397,11 @@ async fn proxy(
     // 不会整体加载到 WASM 内存。
     // ========================================================
 
-    let stream = response.stream()?;
+    let body =
+    response.bytes().await?;
 
     Ok(
-        Response::from_stream(stream)?
+        Response::from_bytes(body)?
             .with_headers(response_headers)
             .with_status(status)
     )
