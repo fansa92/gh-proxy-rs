@@ -287,7 +287,9 @@ async fn proxy(
     init.with_headers(
         request_headers.clone(),
     );
-    init.with_redirect(RequestRedirect::Follow);
+    init.with_redirect(
+        RequestRedirect::Follow,
+    );
 
     // --------------------------------------------------------
     // GET / HEAD
@@ -306,7 +308,7 @@ async fn proxy(
     // 发起请求
     // --------------------------------------------------------
 
-    let mut response =
+    let response =
         Fetch::Request(upstream)
             .send()
             .await?;
@@ -315,7 +317,7 @@ async fn proxy(
     // 获取上游响应头
     // --------------------------------------------------------
 
-    let mut response_headers =
+    let response_headers =
         response.headers().clone();
 
     // --------------------------------------------------------
@@ -333,10 +335,10 @@ async fn proxy(
         "*",
     )?;
 
-    response_headers.set(
-        "cache-control",
-        "public, max-age=31536000, immutable",
-    )?;
+    // response_headers.set(
+    //     "cache-control",
+    //     "public, max-age=31536000, immutable",
+    // )?;
 
     response_headers.set(
         "access-control-expose-headers",
