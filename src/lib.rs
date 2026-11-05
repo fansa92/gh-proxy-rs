@@ -317,9 +317,20 @@ async fn proxy(
     // --------------------------------------------------------
 
     let mut response =
-        Fetch::Request(upstream)
-            .send()
-            .await?;
+    match Fetch::Request(upstream)
+        .send()
+        .await
+    {
+        Ok(response) => response,
+        Err(err) => {
+            return Ok(Some(
+                Response::error(
+                    format!("upstream fetch error: {}", err),
+                    500,
+                )?
+            ));
+        }
+    };
 
     // --------------------------------------------------------
     // 获取上游响应头
