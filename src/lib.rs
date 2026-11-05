@@ -349,10 +349,10 @@ async fn proxy(
         "*",
     )?;
 
-    // response_headers.set(
-    //     "cache-control",
-    //     "public, max-age=31536000, immutable",
-    // )?;
+    response_headers.set(
+        "cache-control",
+        "public, max-age=31536000, immutable",
+    )?;
 
     response_headers.set(
         "access-control-expose-headers",
