@@ -395,8 +395,7 @@ async fn proxy(
     // 状态码
     // --------------------------------------------------------
 
-    let status =
-        response.status_code();
+    let status = response.status_code();
 
     // ========================================================
     // ★★★★★ 核心修复
@@ -414,16 +413,11 @@ async fn proxy(
     // 不会整体加载到 WASM 内存。
     // ========================================================
 
-    let stream =
-        response.stream()?;
+    let stream = response.stream()?;
 
-    Ok(
-        Response::from_stream(stream)?
-            .with_headers(
-                response_headers,
-            )
-            .with_status(status),
-    )
+    Ok(Response::from_stream(stream)?
+       .with_headers(res_headers)
+       .with_status(status))
 }
 
 
