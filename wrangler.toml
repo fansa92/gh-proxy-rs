@@ -1,6 +1,6 @@
 name = "gh-proxy-rs"
 main = "build/worker/shim.mjs"
-compatibility_date = "2024-09-23"
+compatibility_date = "2026-11-05"
 
 [build]
 command = "cargo install worker-build@0.8.7 && worker-build --release"
