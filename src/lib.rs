@@ -423,14 +423,11 @@ async fn proxy(
     let status =
         response.status_code();
 
-    let stream =
-        response.stream()?;
+    let body = response.bytes().await?;
 
     Ok(
-        Response::from_stream(stream)?
-            .with_headers(
-                response_headers,
-            )
+        Response::from_bytes(body)?
+            .with_headers(response_headers)
             .with_status(status)
     )
 }
