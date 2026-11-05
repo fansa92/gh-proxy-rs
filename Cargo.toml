@@ -1,15 +1,16 @@
 [package]
 name = "gh-proxy-rs"
 version = "0.1.0"
-edition = "2024"
-authors = ["yorelog"]
-license = "MIT"
-repository = "https://github.com/yorelog/gh-proxy-rs"
-description = "A GitHub proxy worker implementation in Rust for Cloudflare Workers"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-regex = "1"
-worker = "0.6"
+worker = "0.8.7"
+url = "2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1

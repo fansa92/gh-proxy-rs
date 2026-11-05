@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       prefix:
-        description: "Worker 名称前缀，例如 hk / jp / cf"
+        description: "Worker 名称前缀，例如 hk / jp / sg"
         required: false
         default: ""
         type: string
@@ -15,28 +15,51 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      # 1. 拉取源码
       - name: Checkout
         uses: actions/checkout@v6
 
+      # 2. Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
 
+      # 3. Rust
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: stable
           targets: wasm32-unknown-unknown
 
+      # 4. 检查 Rust / Cargo
+      - name: Check toolchain
+        run: |
+          rustc --version
+          cargo --version
+          rustup target list --installed
+
+      # 5. 安装 npm 依赖
       - name: Install Node dependencies
         run: npm install
 
+      # 6. 安装最新版 worker-build
       - name: Install worker-build
-        run: cargo install worker-build@0.1.13
+        run: |
+          cargo install worker-build --version 0.8.7
 
+      # 7. Rust → WASM
       - name: Build Worker
-        run: worker-build --release
+        run: |
+          worker-build --release
 
+      # 8. 查看构建结果
+      - name: Show build output
+        run: |
+          echo "=== build directory ==="
+          find build -maxdepth 3 -type f -print
+
+      # 9. 生成 Worker 名称
       - name: Set Worker name
         env:
           PREFIX: ${{ inputs.prefix }}
@@ -50,13 +73,10 @@ jobs:
           echo "Worker name: $WORKER_NAME"
           echo "WORKER_NAME=$WORKER_NAME" >> "$GITHUB_ENV"
 
-      - name: Show build output
-        run: |
-          echo "=== build/worker ==="
-          find build/worker -maxdepth 2 -type f -print
-
+      # 10. 部署
       - name: Deploy to Cloudflare Workers
-        run: npx wrangler deploy --name "$WORKER_NAME"
+        run: |
+          npx wrangler deploy --name "$WORKER_NAME"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
