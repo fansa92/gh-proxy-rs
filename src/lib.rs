@@ -215,16 +215,13 @@ async fn check_size(
         )?;
 
     let mut response =
-        match Fetch::Request(upstream)
+        match Fetch::Request(request)
             .send()
             .await
         {
             Ok(response) => response,
             Err(err) => {
-                return Response::error(
-                    format!("upstream fetch error: {}", err),
-                    500,
-                );
+                return Err(err);
             }
         };
     if let Some(length) =
@@ -323,12 +320,10 @@ async fn proxy(
     {
         Ok(response) => response,
         Err(err) => {
-            return Ok(Some(
-                Response::error(
-                    format!("upstream fetch error: {}", err),
-                    500,
-                )?
-            ));
+            return Response::error(
+                format!("upstream fetch error: {}", err),
+                500,
+            );
         }
     };
 
