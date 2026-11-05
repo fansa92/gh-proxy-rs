@@ -296,11 +296,11 @@ async fn proxy(
     // 不读取 GET body，避免不必要的内存分配。
     // --------------------------------------------------------
 
-    let mut upstream =
-        Request::new_with_init(
-            url.as_str(),
-            &init,
-        )?;
+    let upstream =
+    Request::new_with_init(
+        url.as_str(),
+        &init,
+    )?;
 
     // --------------------------------------------------------
     // 发起请求
@@ -415,9 +415,11 @@ async fn proxy(
 
     let stream = response.stream()?;
 
-    Ok(Response::from_stream(stream)?
-       .with_headers(res_headers)
-       .with_status(status))
+    Ok(
+        Response::from_stream(stream)?
+            .with_headers(response_headers)
+            .with_status(status)
+    )
 }
 
 
