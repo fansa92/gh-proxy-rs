@@ -272,77 +272,126 @@ async fn proxy(
     req: Request,
 ) -> Result<Response> {
 
-    // --------------------------------------------------------
-    // 保存客户端请求头
-    // --------------------------------------------------------
-
-    let request_headers =
-        req.headers().clone();
-
     let method =
         req.method();
 
-    // --------------------------------------------------------
-    // 构造上游请求
-    // --------------------------------------------------------
-
-    let mut init = RequestInit::new();
+    let mut init =
+        RequestInit::new();
 
     init.with_method(method);
+
+    // =========================
+    // 上游请求 Header 白名单
+    // =========================
+
+    let mut upstream_headers =
+        Headers::new();
+
+    // Range：大文件/断点续传必须保留
+    if let Some(range) =
+        req.headers().get("Range")?
+    {
+        upstream_headers.set(
+            "Range",
+            &range,
+        )?;
+    }
+
+    // If-Range
+    if let Some(if_range) =
+        req.headers().get("If-Range")?
+    {
+        upstream_headers.set(
+            "If-Range",
+            &if_range,
+        )?;
+    }
+
+    // ETag
+    if let Some(if_none_match) =
+        req.headers().get("If-None-Match")?
+    {
+        upstream_headers.set(
+            "If-None-Match",
+            &if_none_match,
+        )?;
+    }
+
+    // Last-Modified
+    if let Some(if_modified_since) =
+        req.headers().get("If-Modified-Since")?
+    {
+        upstream_headers.set(
+            "If-Modified-Since",
+            &if_modified_since,
+        )?;
+    }
+
+    // User-Agent
+    if let Some(user_agent) =
+        req.headers().get("User-Agent")?
+    {
+        upstream_headers.set(
+            "User-Agent",
+            &user_agent,
+        )?;
+    } else {
+        upstream_headers.set(
+            "User-Agent",
+            "gh-proxy-rs",
+        )?;
+    }
+
+    // Accept
+    if let Some(accept) =
+        req.headers().get("Accept")?
+    {
+        upstream_headers.set(
+            "Accept",
+            &accept,
+        )?;
+    } else {
+        upstream_headers.set(
+            "Accept",
+            "*/*",
+        )?;
+    }
+
     init.with_headers(
-        request_headers.clone(),
+        upstream_headers,
     );
+
+    // 自动跟随 GitHub Release 302
     init.with_redirect(
         RequestRedirect::Follow,
     );
 
-    // --------------------------------------------------------
-    // GET / HEAD
-    //
-    // GitHub Release 下载主要使用 GET。
-    // 不读取 GET body，避免不必要的内存分配。
-    // --------------------------------------------------------
-
     let upstream =
-    Request::new_with_init(
-        url.as_str(),
-        &init,
-    )?;
-
-    // --------------------------------------------------------
-    // 发起请求
-    // --------------------------------------------------------
+        Request::new_with_init(
+            url.as_str(),
+            &init,
+        )?;
 
     let mut response =
-    match Fetch::Request(upstream)
-        .send()
-        .await
-    {
-        Ok(response) => response,
-        Err(err) => {
-            return Response::error(
-                format!("upstream fetch error: {}", err),
-                500,
-            );
-        }
-    };
+        match Fetch::Request(upstream)
+            .send()
+            .await
+        {
+            Ok(response) => response,
 
-    // --------------------------------------------------------
-    // 获取上游响应头
-    // --------------------------------------------------------
+            Err(err) => {
+                return Response::error(
+                    format!(
+                        "upstream fetch error: {}",
+                        err
+                    ),
+                    500,
+                );
+            }
+        };
 
     let response_headers =
         response.headers().clone();
-
-    // --------------------------------------------------------
-    // GitHub / GitHub CDN 重定向
-    // --------------------------------------------------------
-
-
-
-    // --------------------------------------------------------
-    // CORS
-    // --------------------------------------------------------
 
     response_headers.set(
         "access-control-allow-origin",
@@ -359,10 +408,6 @@ async fn proxy(
         "*",
     )?;
 
-    // --------------------------------------------------------
-    // 删除安全头
-    // --------------------------------------------------------
-
     response_headers.delete(
         "content-security-policy",
     )?;
@@ -375,34 +420,17 @@ async fn proxy(
         "clear-site-data",
     )?;
 
-    // --------------------------------------------------------
-    // 状态码
-    // --------------------------------------------------------
+    let status =
+        response.status_code();
 
-    let status = response.status_code();
-
-    // ========================================================
-    // ★★★★★ 核心修复
-    // ========================================================
-    //
-    // 不再：
-    //
-    // response.bytes().await?
-    //
-    // 而是：
-    //
-    // response.stream()
-    //
-    // 这样 65 MB / 100 MB / 更大的 Release
-    // 不会整体加载到 WASM 内存。
-    // ========================================================
-
-    let body =
-    response.bytes().await?;
+    let stream =
+        response.stream()?;
 
     Ok(
-        Response::from_bytes(body)?
-            .with_headers(response_headers)
+        Response::from_stream(stream)?
+            .with_headers(
+                response_headers,
+            )
             .with_status(status)
     )
 }
