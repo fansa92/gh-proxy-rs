@@ -308,7 +308,7 @@ async fn proxy(
     // 发起请求
     // --------------------------------------------------------
 
-    let response =
+    let mut response =
         Fetch::Request(upstream)
             .send()
             .await?;
