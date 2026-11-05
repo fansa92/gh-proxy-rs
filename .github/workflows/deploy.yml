@@ -1,10 +1,13 @@
 name: Deploy gh-proxy-rs
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      prefix:
+        description: "Worker 名称前缀"
+        required: false
+        default: "gh-proxy-rs"
+        type: string
 
 jobs:
   deploy:
@@ -28,8 +31,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Set Worker name
+        run: |
+          PREFIX="${{ inputs.prefix }}"
+
+          if [ -n "$PREFIX" ]; then
+            WORKER_NAME="${PREFIX}-gh-proxy-rs"
+          else
+            WORKER_NAME="gh-proxy-rs"
+          fi
+
+          echo "Worker name: $WORKER_NAME"
+
+          # 修改 wrangler.toml 中的 name
+          sed -i "s/^name = .*/name = \"$WORKER_NAME\"/" wrangler.toml
+
+          echo "最终 wrangler.toml:"
+          cat wrangler.toml
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+```
