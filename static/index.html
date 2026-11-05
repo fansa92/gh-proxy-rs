@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="GH Proxy - GitHub 文件加速与代理"
+    >
+
+    <title>GH Proxy - GitHub 加速</title>
+
+    <style>
+        :root {
+            color-scheme: light dark;
+
+            --bg: #f6f8fa;
+            --card: rgba(255, 255, 255, 0.92);
+            --text: #1f2328;
+            --muted: #656d76;
+            --border: #d0d7de;
+            --input-bg: #ffffff;
+            --primary: #0969da;
+            --primary-hover: #0757b5;
+            --code-bg: #f0f2f4;
+            --shadow:
+                0 12px 40px rgba(31, 35, 40, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0d1117;
+                --card: rgba(22, 27, 34, 0.94);
+                --text: #e6edf3;
+                --muted: #8b949e;
+                --border: #30363d;
+                --input-bg: #0d1117;
+                --primary: #2f81f7;
+                --primary-hover: #58a6ff;
+                --code-bg: #161b22;
+                --shadow:
+                    0 16px 50px rgba(0, 0, 0, 0.35);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                "Noto Sans SC",
+                "Microsoft YaHei",
+                sans-serif;
+
+            color: var(--text);
+            background:
+                radial-gradient(
+                    circle at top,
+                    rgba(9, 105, 218, 0.08),
+                    transparent 38%
+                ),
+                var(--bg);
+
+            display: flex;
+            justify-content: center;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 980px;
+
+            padding:
+                48px 24px
+                40px;
+        }
+
+        /* ================================
+           Header
+           ================================ */
+
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .logo {
+            width: 68px;
+            height: 68px;
+
+            margin: 0 auto 18px;
+
+            border-radius: 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: white;
+            background: var(--primary);
+
+            font-size: 30px;
+            font-weight: 800;
+
+            box-shadow:
+                0 12px 30px
+                rgba(9, 105, 218, 0.22);
+        }
+
+        h1 {
+            margin: 0;
+
+            font-size: 38px;
+            line-height: 1.2;
+
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            margin-top: 12px;
+
+            color: var(--muted);
+
+            font-size: 16px;
+        }
+
+        /* ================================
+           Card
+           ================================ */
+
+        .card {
+            background: var(--card);
+
+            border: 1px solid var(--border);
+            border-radius: 20px;
+
+            padding: 28px;
+
+            box-shadow: var(--shadow);
+
+            backdrop-filter: blur(12px);
+        }
+
+        /* ================================
+           Input
+           ================================ */
+
+        .input-label {
+            display: block;
+
+            margin-bottom: 10px;
+
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+
+            width: 100%;
+        }
+
+        .url-input {
+            flex: 1;
+
+            min-width: 0;
+
+            height: 52px;
+
+            padding:
+                0 16px;
+
+            color: var(--text);
+            background: var(--input-bg);
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 12px;
+
+            outline: none;
+
+            transition:
+                border-color .15s ease,
+                box-shadow .15s ease;
+        }
+
+        .url-input::placeholder {
+            color: var(--muted);
+        }
+
+        .url-input:focus {
+            border-color: var(--primary);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(9, 105, 218, 0.15);
+        }
+
+        .submit-button {
+            flex: 0 0 auto;
+
+            height: 52px;
+
+            padding:
+                0 24px;
+
+            border: 0;
+            border-radius: 12px;
+
+            color: white;
+            background: var(--primary);
+
+            cursor: pointer;
+
+            font-weight: 600;
+
+            transition:
+                background .15s ease,
+                transform .1s ease;
+        }
+
+        .submit-button:hover {
+            background: var(--primary-hover);
+        }
+
+        .submit-button:active {
+            transform: translateY(1px);
+        }
+
+        /* ================================
+           Actions
+           ================================ */
+
+        .actions {
+            display: flex;
+
+            margin-top: 14px;
+
+            gap: 10px;
+        }
+
+        .secondary-button {
+            height: 40px;
+
+            padding:
+                0 15px;
+
+            color: var(--text);
+
+            background: transparent;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 9px;
+
+            cursor: pointer;
+
+            font-size: 14px;
+
+            transition:
+                background .15s ease,
+                border-color .15s ease;
+        }
+
+        .secondary-button:hover {
+            background: var(--code-bg);
+        }
+
+        /* ================================
+           Features
+           ================================ */
+
+        .features {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 12px;
+
+            margin-top: 28px;
+        }
+
+        .feature {
+            padding: 18px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 14px;
+
+            background:
+                color-mix(
+                    in srgb,
+                    var(--card) 80%,
+                    var(--code-bg)
+                );
+        }
+
+        .feature-title {
+            font-weight: 600;
+
+            margin-bottom: 5px;
+        }
+
+        .feature-text {
+            color: var(--muted);
+
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* ================================
+           Examples
+           ================================ */
+
+        .section {
+            margin-top: 32px;
+        }
+
+        .section-title {
+            margin-bottom: 14px;
+
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .example {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 13px 15px;
+
+            margin-bottom: 9px;
+
+            background: var(--code-bg);
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            transition:
+                border-color .15s ease;
+        }
+
+        .example:hover {
+            border-color: var(--primary);
+        }
+
+        .example-type {
+            flex:
+                0 0 78px;
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .example-url {
+            min-width: 0;
+
+            flex: 1;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            color: var(--muted);
+
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Monaco,
+                Consolas,
+                monospace;
+
+            font-size: 12px;
+        }
+
+        /* ================================
+           Status
+           ================================ */
+
+        .status {
+            display: none;
+
+            margin-top: 14px;
+
+            padding: 12px 14px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 10px;
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        /* ================================
+           Footer
+           ================================ */
+
+        footer {
+            margin-top: 36px;
+
+            text-align: center;
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+        footer a {
+            color: inherit;
+
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--primary);
+        }
+
+        /* ================================
+           Mobile
+           ================================ */
+
+        @media (max-width: 700px) {
+            .page {
+                padding:
+                    32px 16px
+                    28px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .input-wrapper {
+                flex-direction: column;
+            }
+
+            .submit-button {
+                width: 100%;
+            }
+
+            .features {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .example-type {
+                flex-basis: 62px;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .example {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .example-url {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- ============================
+         Header
+         ============================= -->
+
+    <header class="header">
+
+        <div class="logo">
+            GH
+        </div>
+
+        <h1>
+            GitHub Proxy
+        </h1>
+
+        <div class="subtitle">
+            快速、稳定的 GitHub 文件代理与加速
+        </div>
+
+    </header>
+
+
+    <!-- ============================
+         Main Card
+         ============================= -->
+
+    <main class="card">
+
+        <label
+            class="input-label"
+            for="url"
+        >
+            GitHub URL
+        </label>
+
+        <div class="input-wrapper">
+
+            <input
+                id="url"
+                class="url-input"
+                type="url"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="粘贴 GitHub Release、Raw、Archive 或仓库地址..."
+            >
+
+            <button
+                id="submit"
+                class="submit-button"
+                type="button"
+            >
+                立即访问
+            </button>
+
+        </div>
+
+
+        <div class="actions">
+
+            <button
+                id="paste"
+                class="secondary-button"
+                type="button"
+            >
+                粘贴
+            </button>
+
+            <button
+                id="clear"
+                class="secondary-button"
+                type="button"
+            >
+                清空
+            </button>
+
+        </div>
+
+
+        <div
+            id="status"
+            class="status"
+        ></div>
+
+
+        <!-- ============================
+             Features
+             ============================= -->
+
+        <div class="features">
+
+            <div class="feature">
+                <div class="feature-title">
+                    Release
+                </div>
+
+                <div class="feature-text">
+                    GitHub Release 文件加速
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-title">
+                    Raw
+                </div>
+
+                <div class="feature-text">
+                    raw.githubusercontent.com
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-title">
+                    Archive
+                </div>
+
+                <div class="feature-text">
+                    ZIP / TAR.GZ 源码下载
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-title">
+                    Git Clone
+                </div>
+
+                <div class="feature-text">
+                    支持 Git HTTP 请求
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ============================
+             Examples
+             ============================= -->
+
+        <section class="section">
+
+            <div class="section-title">
+                使用示例
+            </div>
+
+
+            <div
+                class="example"
+                data-url="https://github.com/chen08209/FlClash/releases/download/v0.9.3/FlClash-0.9.3-windows-amd64.zip"
+            >
+                <div class="example-type">
+                    Release
+                </div>
+
+                <div class="example-url">
+                    https://github.com/user/repo/releases/download/v1.0.0/example.zip
+                </div>
+            </div>
+
+
+            <div
+                class="example"
+                data-url="https://raw.githubusercontent.com/user/repo/main/README.md"
+            >
+                <div class="example-type">
+                    Raw
+                </div>
+
+                <div class="example-url">
+                    https://raw.githubusercontent.com/user/repo/main/README.md
+                </div>
+            </div>
+
+
+            <div
+                class="example"
+                data-url="https://github.com/user/repo/archive/refs/heads/main.zip"
+            >
+                <div class="example-type">
+                    Archive
+                </div>
+
+                <div class="example-url">
+                    https://github.com/user/repo/archive/refs/heads/main.zip
+                </div>
+            </div>
+
+
+            <div
+                class="example"
+                data-url="https://github.com/user/repo.git"
+            >
+                <div class="example-type">
+                    Git Clone
+                </div>
+
+                <div class="example-url">
+                    git clone https://github.com/user/repo.git
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ============================
+         Footer
+         ============================= -->
+
+    <footer>
+
+        <div>
+            GH Proxy
+            ·
+            Powered by Cloudflare Workers
+        </div>
+
+        <div style="margin-top: 7px;">
+            GitHub 文件代理服务
+        </div>
+
+    </footer>
+
+</div>
+
+
+<script>
+(function () {
+
+    "use strict";
+
+
+    const input =
+        document.getElementById("url");
+
+    const submit =
+        document.getElementById("submit");
+
+    const paste =
+        document.getElementById("paste");
+
+    const clear =
+        document.getElementById("clear");
+
+    const status =
+        document.getElementById("status");
+
+
+    /*
+     * 显示状态
+     */
+
+    function showStatus(message) {
+
+        status.textContent =
+            message;
+
+        status.classList.add(
+            "show"
+        );
+    }
+
+
+    /*
+     * 获取 Worker 当前地址
+     */
+
+    function getWorkerOrigin() {
+
+        return window.location.origin;
+    }
+
+
+    /*
+     * 清理用户输入
+     */
+
+    function normalizeUrl(value) {
+
+        let url =
+            value.trim();
+
+        if (!url) {
+            return "";
+        }
+
+
+        /*
+         * git clone 命令
+         *
+         * git clone https://github.com/...
+         */
+
+        if (
+            url.startsWith(
+                "git clone "
+            )
+        ) {
+            url =
+                url
+                    .replace(
+                        /^git\s+clone\s+/i,
+                        ""
+                    )
+                    .trim();
+        }
+
+
+        /*
+         * 没有协议时自动补 HTTPS
+         */
+
+        if (
+            !url.startsWith(
+                "http://"
+            )
+            &&
+            !url.startsWith(
+                "https://"
+            )
+        ) {
+            url =
+                "https://" + url;
+        }
+
+
+        return url;
+    }
+
+
+    /*
+     * 判断是否为 GitHub URL
+     */
+
+    function isGitHubUrl(url) {
+
+        try {
+
+            const parsed =
+                new URL(url);
+
+            const host =
+                parsed.hostname
+                    .toLowerCase();
+
+            return (
+                host === "github.com"
+                ||
+                host ===
+                    "www.github.com"
+                ||
+                host ===
+                    "raw.githubusercontent.com"
+                ||
+                host ===
+                    "raw.github.com"
+                ||
+                host ===
+                    "gist.githubusercontent.com"
+                ||
+                host ===
+                    "gist.github.com"
+            );
+
+        } catch (error) {
+
+            return false;
+        }
+    }
+
+
+    /*
+     * 生成代理地址
+     */
+
+    function buildProxyUrl(url) {
+
+        return (
+            getWorkerOrigin()
+            +
+            "/"
+            +
+            url
+        );
+    }
+
+
+    /*
+     * 访问
+     */
+
+    function openUrl() {
+
+        const raw =
+            input.value;
+
+        const url =
+            normalizeUrl(raw);
+
+
+        if (!url) {
+
+            showStatus(
+                "请输入 GitHub URL"
+            );
+
+            input.focus();
+
+            return;
+        }
+
+
+        if (!isGitHubUrl(url)) {
+
+            showStatus(
+                "请输入有效的 GitHub URL"
+            );
+
+            input.focus();
+
+            return;
+        }
+
+
+        const proxyUrl =
+            buildProxyUrl(url);
+
+
+        /*
+         * 直接跳转到代理 URL
+         */
+
+        window.location.href =
+            proxyUrl;
+    }
+
+
+    /*
+     * 提交
+     */
+
+    submit.addEventListener(
+        "click",
+        openUrl
+    );
+
+
+    /*
+     * Enter
+     */
+
+    input.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Enter"
+            ) {
+                event.preventDefault();
+
+                openUrl();
+            }
+
+        }
+    );
+
+
+    /*
+     * Escape 清空
+     */
+
+    input.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+                input.value = "";
+
+                status.classList.remove(
+                    "show"
+                );
+            }
+
+        }
+    );
+
+
+    /*
+     * 粘贴
+     */
+
+    paste.addEventListener(
+        "click",
+        async function () {
+
+            try {
+
+                const text =
+                    await navigator
+                        .clipboard
+                        .readText();
+
+                if (text) {
+
+                    input.value =
+                        text.trim();
+
+                    input.focus();
+
+                    showStatus(
+                        "已粘贴 URL"
+                    );
+
+                }
+
+            } catch (error) {
+
+                input.focus();
+
+                showStatus(
+                    "浏览器不允许读取剪贴板，请手动粘贴"
+                );
+            }
+
+        }
+    );
+
+
+    /*
+     * 清空
+     */
+
+    clear.addEventListener(
+        "click",
+        function () {
+
+            input.value = "";
+
+            status.classList.remove(
+                "show"
+            );
+
+            input.focus();
+        }
+    );
+
+
+    /*
+     * 点击示例
+     */
+
+    document
+        .querySelectorAll(
+            ".example"
+        )
+        .forEach(
+            function (element) {
+
+                element.addEventListener(
+                    "click",
+                    function () {
+
+                        const url =
+                            element.dataset.url;
+
+                        input.value =
+                            url;
+
+                        input.focus();
+
+                        showStatus(
+                            "示例已填入，点击「立即访问」"
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    /*
+     * 页面打开后自动聚焦
+     *
+     * 桌面端启用
+     */
+
+    if (
+        window.innerWidth > 700
+    ) {
+        setTimeout(
+            function () {
+                input.focus();
+            },
+            100
+        );
+    }
+
+})();
+</script>
+
+</body>
+</html>

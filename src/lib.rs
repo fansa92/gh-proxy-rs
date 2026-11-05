@@ -1,4 +1,5 @@
 use worker::*;
+mod web;
 
 const PREFIX: &str = "/";
 
@@ -483,10 +484,7 @@ async fn main(
     if pathname == "/"
         || pathname.is_empty()
     {
-        return text_response(
-            "gh-proxy-rs is running",
-            200,
-        );
+        return web::index();
     }
 
     // --------------------------------------------------------
