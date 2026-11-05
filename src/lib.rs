@@ -284,7 +284,9 @@ async fn proxy(
     let mut init = RequestInit::new();
 
     init.with_method(method);
-    init.with_headers(request_headers.clone());
+    init.with_headers(
+        request_headers.clone(),
+    );
     init.with_redirect(RequestRedirect::Follow);
 
     // --------------------------------------------------------
@@ -313,7 +315,7 @@ async fn proxy(
     // 获取上游响应头
     // --------------------------------------------------------
 
-    let response_headers =
+    let mut response_headers =
         response.headers().clone();
 
     // --------------------------------------------------------
@@ -329,6 +331,11 @@ async fn proxy(
     response_headers.set(
         "access-control-allow-origin",
         "*",
+    )?;
+
+    response_headers.set(
+        "cache-control",
+        "public, max-age=31536000, immutable",
     )?;
 
     response_headers.set(

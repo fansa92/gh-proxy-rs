@@ -5,3 +5,5 @@ compatibility_date = "2026-11-05"
 [build]
 command = "cargo install worker-build@0.8.7 && worker-build --release"
 
+[cache]
+enabled = true
