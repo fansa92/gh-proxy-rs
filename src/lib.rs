@@ -281,13 +281,11 @@ async fn proxy(
     // 构造上游请求
     // --------------------------------------------------------
 
-    let mut init =
-        RequestInit::new();
+    let mut init = RequestInit::new();
 
     init.with_method(method);
-    init.with_headers(
-        request_headers.clone(),
-    );
+    init.with_headers(request_headers.clone());
+    init.with_redirect(RequestRedirect::Follow);
 
     // --------------------------------------------------------
     // GET / HEAD
@@ -322,44 +320,7 @@ async fn proxy(
     // GitHub / GitHub CDN 重定向
     // --------------------------------------------------------
 
-    if let Some(location) =
-        response_headers.get("location")?
-    {
-        // GitHub 自己的 URL
-        //
-        // 例如：
-        //
-        // https://github.com/...
-        //
-        // 不需要在 Worker 内继续递归代理，
-        // 直接让客户端跟随重定向。
-        //
-        // 对 Release 下载来说，
-        // GitHub 通常会 302 到 objects.githubusercontent.com。
-        //
-        // 直接返回 302 可以避免 Worker 继续占用执行资源。
 
-        let redirect_url =
-            Url::parse(&location)?;
-
-        let mut redirect_headers =
-            cors_headers()?;
-
-        redirect_headers.set(
-            "location",
-            redirect_url.as_str(),
-        )?;
-
-        return Ok(
-            Response::empty()?
-                .with_headers(
-                    redirect_headers,
-                )
-                .with_status(
-                    response.status_code(),
-                ),
-        );
-    }
 
     // --------------------------------------------------------
     // CORS
